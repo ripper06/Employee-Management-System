@@ -6,8 +6,11 @@ class EmployeeDetailsRepository extends CrudRepository{
         super(EmployeeDetails);
     }
 
-    async findByEmployeeId(employee_id) {
-        return await EmployeeDetails.findOne({ where: { employee_id } });
+    async findByEmployeeId(employee_id, options = {}) {
+        return await EmployeeDetails.findOne({ 
+            where: { employee_id } ,
+            ...options
+        });
     }
 }
 

@@ -1,5 +1,6 @@
 const { ServerConfig} = require('./config');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const rateLimit = require('express-rate-limit');
 const authMiddleware = require('./middlewares/authMiddleware');
 
 const cors = require('cors')
@@ -11,47 +12,67 @@ app.use(cors());
 
 
 
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests
+  message: {
+    success: false,
+    error: "Too many requests from this IP, please try again later."
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
-console.log('AUTH_SERVICE_URL:', ServerConfig.AUTH_SERVICE_URL);
-// PUBLIC ROUTES (no auth)
+// GLOBAL RATE LIMIT (applies to everything)
+app.use(globalLimiter);
+
+
+
+// PROXY(AUTH-SERVICE)
 app.use('/authservice', createProxyMiddleware({
   target: ServerConfig.AUTH_SERVICE_URL,
   changeOrigin: true,
   pathRewrite: { '^/authservice': '' }
 }));
 
-// PROTECTED ROUTES
-// app.use('/employeeservice',
-//   authMiddleware,
-//   createProxyMiddleware({
-//     target: ServerConfig.EMPLOYEE_SERVICE_URL,
-//     changeOrigin: true,
-//     pathRewrite: { '^/employeeservice': '/' },
+//PROXY(EMPLOYEE-SERVICE)
+app.use('/employeeservice',
+  authMiddleware,
+  createProxyMiddleware({
+    target: ServerConfig.EMPLOYEE_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: { '^/employeeservice': '/' },
 
-//     onProxyReq: (proxyReq, req) => {
-//       console.log(`[Gateway] ${req.method} ${req.originalUrl}`);
+    onProxyReq: (proxyReq, req) => {
+      console.log(`[Gateway] ${req.method} ${req.originalUrl}`);
 
-//       if (req.userId) {
-//         proxyReq.setHeader('x-user-id', req.userId);
-//       }
+      if (req.headers['x-user-id']) {
+        console.log("Forwarding:", req.headers['x-user-id']);
+        proxyReq.setHeader('x-user-id', req.headers['x-user-id']);
+      }
 
-//       if (req.headers.authorization) {
-//         proxyReq.setHeader('Authorization', req.headers.authorization);
-//       }
-//     }
-//   })
-// );
+      if (req.headers.authorization) {
+        proxyReq.setHeader('Authorization', req.headers.authorization);
+      }
+    }
+  })
+);
 
-// health check
+
+//DUMMY-API
 app.get('/', (req, res) => {
   res.send('API GATEWAY IS LIVE!');
 });
 
-// global error handler
+
+
+// GLOBAL-ERROR HANDLER
 app.use((err, req, res, next) => {
   console.error('Gateway Error:', err.message);
   res.status(500).json({ error: 'Something went wrong' });
 });
+
+
 
 const PORT = ServerConfig.PORT;
 

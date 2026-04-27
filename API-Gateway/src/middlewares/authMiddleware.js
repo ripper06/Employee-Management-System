@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { ServerConfig } = require('../config');
 
 module.exports = (req, res, next) => {
   try {
@@ -7,9 +8,11 @@ module.exports = (req, res, next) => {
       '/authservice/signup'
     ];
 
-    if (publicRoutes.includes(req.originalUrl)) {
-      return next();
-    }
+    const isPublic = publicRoutes.some(route =>
+      req.originalUrl.startsWith(route)
+    );
+
+    if (isPublic) return next();
 
     const authHeader = req.headers.authorization;
 
@@ -23,11 +26,17 @@ module.exports = (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, ServerConfig.JWT_SECRET);
 
-    // attach user info
+
     req.userId = decoded.userId;
-    req.role = decoded.role; // useful later 🔥
+    req.role = decoded.role;
+
+    // console.log("auth-middleware userId:", req.userId);
+    // console.log("decoded:", decoded);
+
+    // attach to headers for proxy
+    req.headers['x-user-id'] = req.userId;
 
     next();
 

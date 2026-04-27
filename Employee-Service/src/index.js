@@ -3,14 +3,15 @@ const app = express();
 
 const cors = require('cors');
 
-const employeeRoutes = require('./routes/employeeRoutes');
+const Routes = require('./routes');
+
 const globalErrorHandler = require('./middlewares/globalErrorHandler');
 
 app.use(cors());
 app.use(express.json());
 
 // routes
-app.use('/employees', employeeRoutes);
+app.use('/api', Routes);
 
 app.get('/',(req,res)=>{
     res.send("Employee Service Is Live!")

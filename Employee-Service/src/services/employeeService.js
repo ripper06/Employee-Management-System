@@ -5,56 +5,67 @@ const {EmployeeDetailsRepo} = require('../repository')
 const {JobDetailsRepo} = require('../repository')
 
 class EmployeeService{
-    async createFullProfile(data) {
-    const { employee, employeeDetails, jobDetails } = data;
 
-    const t = await sequelize.transaction();
+  //CREATE NEW EMPLOYEE
+  async createFullProfile(data, userId) {
+      const { employee, employeeDetails, jobDetails } = data;
 
-    try {
-        const existing = await EmployeeRepo.findByUserId(employee.user_id);
+      return await sequelize.transaction(async (t) => {
+
+        employee.user_id = userId;
+
+        const existing = await EmployeeRepo.findByUserId(userId, { transaction: t });
 
         if (existing) {
-            throw new AppError("Employee already exists for this user", 409);
+          throw new AppError("Employee already exists for this user", 409);
         }
-            // 1. create employee
-        const emp = await EmployeeRepo.create(employee, { transaction: t});
 
-        // 2. attach employee_id everywhere
+        const emp = await EmployeeRepo.create(employee, { transaction: t });
+
         employeeDetails.employee_id = emp.id;
         jobDetails.employee_id = emp.id;
 
-        // 3. create details
-        const details = await EmployeeDetailsRepo.create(employeeDetails,{ transaction: t });
-        const job = await JobDetailsRepo.create(jobDetails,{ transaction: t });
-
-        await t.commit();
+        const details = await EmployeeDetailsRepo.create(employeeDetails, { transaction: t });
+        const job = await JobDetailsRepo.create(jobDetails, { transaction: t });
 
         return {
-        employee: emp,
-        employeeDetails: details,
-        jobDetails: job
+          employee: emp,
+          employeeDetails: details,
+          jobDetails: job
         };
-    } catch (error) {
-        t.rollback();
-        throw error;
-    }
+      });
+}
 
-  }
+  //GET EMPLOYEE DETAILS
+    async getFullProfile(id) {
 
-    async getFullProfile(employee_id) {
-
-    const employee = await EmployeeRepo.findById(employee_id);
+    const employee = await EmployeeRepo.findById(id);
 
     if (!employee) throw new AppError("Employee not found", 404);
 
-    const employeeDetails = await EmployeeDetailsRepo.findByEmployeeId(employee_id);
-    const jobDetails = await JobDetailsRepo.findByEmployeeId(employee_id);
+    const employeeDetails = await EmployeeDetailsRepo.findByEmployeeId(employee.id);
+    const jobDetails = await JobDetailsRepo.findByEmployeeId(employee.id);
 
     return {
       employee,
       employeeDetails,
       jobDetails
     };
+  }
+
+  async getEmployeesByDepartment(department) {
+
+    if (!department) {
+      throw new AppError("Department is required", 400);
+    }
+
+    const employees = await EmployeeRepo.findByDepartment(department);
+
+    if (!employees || employees.length === 0) {
+      throw new AppError("No employees found for this department", 404);
+    }
+
+    return employees;
   }
 
 }
