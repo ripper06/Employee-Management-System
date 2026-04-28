@@ -1,11 +1,41 @@
 const {EmployeeService} = require('../services');
 const {AppError} = require('../utils')
 
-const createProfile = async (req, res, next) => {
+// ✅ Check Registration
+const checkIsRegistered = async (req, res, next) => {
   try {
     const userId = req.headers['x-user-id'];
+    console.log("Checking registration for userId:", userId); 
 
     if (!userId) {
+      throw new AppError("User ID missing in headers!", 400);
+    }
+
+    const isRegistered = await EmployeeService.CheckIsRegistered(userId);
+
+    res.status(200).json({
+      success: true,
+      isRegistered : isRegistered
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+const createProfile = async (req, res, next) => {
+  try {
+
+    const additionalInfo = {
+      userId : req.headers['x-user-id'],
+      email : req.headers['x-user-email'],
+      role : req.headers['x-user-role'],
+      lastLogin : req.headers['x-user-last-login'],
+      loginCount : req.headers['x-user-login-count']
+    };
+    
+
+    if (!additionalInfo.userId) {
       return res.status(401).json({ error: "Unauthorized, Id missing in headers!"});
     }
 
@@ -15,7 +45,7 @@ const createProfile = async (req, res, next) => {
       throw new AppError("Invalid payload", 400);
     }
 
-    const result = await EmployeeService.createFullProfile(req.body,userId);
+    const result = await EmployeeService.createFullProfile(req.body,additionalInfo);
 
     res.status(201).json({
       success: true,
@@ -27,16 +57,23 @@ const createProfile = async (req, res, next) => {
 };
 
 const getProfile = async (req, res, next) => {
-  const userId = req.headers['x-user-id'];
-  console.log("userId" + userId);
+
   try {
+      const additionalInfo = {
+      userId : req.headers['x-user-id'],
+      email : req.headers['x-user-email'],
+      role : req.headers['x-user-role'],
+      lastLogin : req.headers['x-user-last-login'],
+      loginCount : req.headers['x-user-login-count']
+    };
+
     const { id } = req.params;
 
     if (!id) {
     return next(new AppError("Employee ID is required", 400));
     }
 
-    const result = await EmployeeService.getFullProfile(id);
+    const result = await EmployeeService.getFullProfile(id,additionalInfo);
 
     res.status(200).json({
       success: true,
@@ -48,6 +85,7 @@ const getProfile = async (req, res, next) => {
 };
 
 const getEmployeesByDepartment = async (req, res, next) => {
+  
   try {
     const { department } = req.query;
 
@@ -63,8 +101,40 @@ const getEmployeesByDepartment = async (req, res, next) => {
   }
 };
 
+const getAllEmployee = async(req,res,next)=>{
+  try {
+    const result = await EmployeeService.getAllEmployees();
+    if(!result) throw new AppError("No Employees Found!", 400);
+
+    res.status(200).json({
+      success : true,
+      data : result
+    })
+
+  } catch (error) {
+    next(error);
+  }
+}
+
+const updateEmployee = async (req, res, next) => {
+  try {
+    const {id} = req.params;
+    const result = await EmployeeService.updateEmployee(id,req.body);
+
+    res.status(200).json({
+      success: true,
+      message : "Employee updated successfully"
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
     createProfile,
     getProfile,
-    getEmployeesByDepartment
+    getEmployeesByDepartment,
+    getAllEmployee,
+    updateEmployee,
+    checkIsRegistered
 }

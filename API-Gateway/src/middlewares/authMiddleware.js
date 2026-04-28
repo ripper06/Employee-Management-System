@@ -30,13 +30,20 @@ module.exports = (req, res, next) => {
 
 
     req.userId = decoded.userId;
-    req.role = decoded.role;
+    req.role = decoded.Role;
+    req.email = decoded.Email;
+    req.lastLogin = decoded.Last_Login;
+    req.loginCount = decoded.Login_Count;
 
     // console.log("auth-middleware userId:", req.userId);
     // console.log("decoded:", decoded);
 
     // attach to headers for proxy
     req.headers['x-user-id'] = req.userId;
+    req.headers['x-user-role'] = req.role;
+    req.headers['x-user-email'] = req.email;
+    req.headers['x-user-last-login'] = req.lastLogin;
+    req.headers['x-user-login-count'] = req.loginCount;
 
     next();
 

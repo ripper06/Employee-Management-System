@@ -51,6 +51,26 @@ app.use('/employeeservice',
         proxyReq.setHeader('x-user-id', req.headers['x-user-id']);
       }
 
+      if(req.headers['x-user-role']){
+        console.log("Forwarding Role:", req.headers['x-user-role']);
+        proxyReq.setHeader('x-user-role', req.headers['x-user-role']);
+      }
+
+      if(req.headers['x-user-email']){
+        console.log("Forwarding Email:", req.headers['x-user-email']);
+        proxyReq.setHeader('x-user-email', req.headers['x-user-email']);
+      }
+
+      if(req.headers['x-user-last-login']){
+        console.log("Forwarding Last Login:", req.headers['x-user-last-login']);
+        proxyReq.setHeader('x-user-last-login', req.headers['x-user-last-login']);
+      }
+
+      if(req.headers['x-user-login-count']){
+        console.log("Forwarding Login Count:", req.headers['x-user-login-count']);
+        proxyReq.setHeader('x-user-login-count', req.headers['x-user-login-count']);
+      }
+
       if (req.headers.authorization) {
         proxyReq.setHeader('Authorization', req.headers.authorization);
       }

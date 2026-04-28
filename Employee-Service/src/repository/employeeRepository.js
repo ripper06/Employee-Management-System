@@ -29,6 +29,27 @@ class EmployeeRepository extends CrudRepository{
             ...options,
         });
     }
+
+    async findAllEmployees(options = {}){
+    return Employee.findAll({
+        include:[
+            {
+                model: EmployeeDetails,
+                as: 'employeeDetails',
+                required: false
+            },
+            {
+                model: JobDetails,
+                as: 'jobDetails',
+                required: false
+            }
+        ],
+        ...options,
+    });
+}
+
+
+    
 }
 
 module.exports = new EmployeeRepository();

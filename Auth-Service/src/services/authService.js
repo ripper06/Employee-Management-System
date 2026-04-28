@@ -53,7 +53,13 @@ class AuthService {
             login_count : user.login_count + 1
         })
 
-        const token = JWT.generate({userId : user.id});
+        const token = JWT.generate({
+            userId : user.id, 
+            Email:user.email, 
+            Role: user.role, 
+            Last_Login: user.last_login_at ,
+            Login_Count: user.login_count
+        });
 
         return {token};
     }

@@ -2,12 +2,14 @@ const { sequelize } = require('../models');
 const {AppError} = require('../utils');
 const {EmployeeRepo} = require('../repository')
 const {EmployeeDetailsRepo} = require('../repository')
-const {JobDetailsRepo} = require('../repository')
+const {JobDetailsRepo} = require('../repository');
+
+//const redisClient = require('../utils/redis');
 
 class EmployeeService{
 
   //CREATE NEW EMPLOYEE
-  async createFullProfile(data, userId) {
+  async createFullProfile(data, {userId}) {
       const { employee, employeeDetails, jobDetails } = data;
 
       return await sequelize.transaction(async (t) => {
@@ -37,7 +39,18 @@ class EmployeeService{
 }
 
   //GET EMPLOYEE DETAILS
-    async getFullProfile(id) {
+  async getFullProfile(id,additionalInfo) {
+    
+    // const cacheKey = `employee-details:${id}`;
+
+    // const cached = await redisClient.get(cacheKey);
+    //     if (cached) {
+    //       console.log('⚡ Cache HIT (profile)');
+    //       return JSON.parse(cached);
+    //     }
+
+    // console.log('❌ Cache MISS (profile)');
+
 
     const employee = await EmployeeRepo.findById(id);
 
@@ -46,11 +59,16 @@ class EmployeeService{
     const employeeDetails = await EmployeeDetailsRepo.findByEmployeeId(employee.id);
     const jobDetails = await JobDetailsRepo.findByEmployeeId(employee.id);
 
-    return {
+    const result =  {
       employee,
       employeeDetails,
-      jobDetails
-    };
+      jobDetails,
+      additionalInfo
+    }
+
+    //await redisClient.setEx(cacheKey, 60, JSON.stringify(result));
+
+    return result;
   }
 
   async getEmployeesByDepartment(department) {
@@ -59,7 +77,10 @@ class EmployeeService{
       throw new AppError("Department is required", 400);
     }
 
-    const employees = await EmployeeRepo.findByDepartment(department);
+    let employees;
+
+    if(department=='ALL') employees = await EmployeeRepo.findAllEmployees();
+    else employees = await EmployeeRepo.findByDepartment(department);
 
     if (!employees || employees.length === 0) {
       throw new AppError("No employees found for this department", 404);
@@ -67,6 +88,44 @@ class EmployeeService{
 
     return employees;
   }
+
+  async getAllEmployees(){
+    const employees = await EmployeeRepo.findAll();
+    return employees;
+  }
+
+async updateEmployee(id, data) {
+  const { employee, employeeDetails, jobDetails } = data;
+
+  const existingEmployee = await EmployeeRepo.findById(id);
+
+  if (!existingEmployee) {
+    throw new AppError("Employee not found", 404);
+  }
+
+  // Update main employee
+  if (employee) {
+    await EmployeeRepo.update(id, employee);
+  }
+
+  // Update employee details
+  if (employeeDetails) {
+    await EmployeeDetailsRepo.update(id, employeeDetails);
+  }
+
+  // Update job details
+  if (jobDetails) {
+    await JobDetailsRepo.update(id, jobDetails);
+  }
+
+  return true;
+}
+
+async CheckIsRegistered(userId){
+   const result = await EmployeeRepo.findByUserId(userId);
+   if(result) return true;
+   return !!result;
+}
 
 }
 
