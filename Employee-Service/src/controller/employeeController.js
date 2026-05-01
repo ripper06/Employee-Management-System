@@ -142,11 +142,39 @@ const updateEmployee = async (req, res, next) => {
   }
 }
 
+
+const getEmployeesBatch = async (req, res, next) => {
+  try {
+    const { ids } = req.body;
+
+    // ✅ Validate input
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or missing 'ids' in request body"
+      });
+    }
+
+    // ✅ Call service (NOT repo directly)
+    const result = await EmployeeService.getEmployeesByIds(ids);
+
+    return res.status(200).json({
+      success: true,
+      data: result
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 module.exports = {
     createProfile,
     getProfile,
     getEmployeesByDepartment,
     getAllEmployee,
     updateEmployee,
-    checkIsRegistered
+    checkIsRegistered,
+    getEmployeesBatch
 }

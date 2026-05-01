@@ -15,6 +15,8 @@ router.get('/', EmployeeController.getAllEmployee);
 router.get('/:id', EmployeeController.getProfile);
 router.put('/:id', EmployeeController.updateEmployee);
 
+router.post('/batch', EmployeeController.getEmployeesBatch);
+
 
 // Attendance Routes (grouped logically)
 router.post('/check-in/:id', AtendanceController.checkIn);

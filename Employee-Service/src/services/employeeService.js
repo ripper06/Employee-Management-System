@@ -3,6 +3,7 @@ const {AppError} = require('../utils');
 const {EmployeeRepo} = require('../repository')
 const {EmployeeDetailsRepo} = require('../repository')
 const {JobDetailsRepo} = require('../repository');
+const { options } = require('../routes');
 
 //const redisClient = require('../utils/redis');
 
@@ -139,6 +140,19 @@ async CheckIsRegistered(userId){
   };
 }
 
+async getEmployeesByIds(employee_ids){
+  const employees = await EmployeeRepo.findByEmployeeIds(employee_ids);
+  const result = {};
+
+    employees.forEach(emp => {
+        result[emp.id] = {
+            first_name: emp.first_name,
+            last_name: emp.last_name
+        };
+    });
+
+    return result;
 }
 
+}
 module.exports = new EmployeeService();

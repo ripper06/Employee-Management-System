@@ -1,5 +1,6 @@
 const {Employee,EmployeeDetails,JobDetails } = require('../models');
 const CrudRepository = require('./crudRepository');
+const { Op } = require("sequelize");
 
 class EmployeeRepository extends CrudRepository{
     constructor(){
@@ -45,6 +46,18 @@ class EmployeeRepository extends CrudRepository{
             }
         ],
         ...options,
+    });
+}
+
+
+async findByEmployeeIds(ids, options = {}) {
+    return await Employee.findAll({
+        where: {
+            id: {
+                [Op.in]: ids
+            }
+        },
+        ...options
     });
 }
 
