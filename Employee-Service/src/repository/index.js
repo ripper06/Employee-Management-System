@@ -1,5 +1,8 @@
+const AttendenceRepository = require('./AttendenceRepository');
+
 module.exports = {
     EmployeeRepo : require('./employeeRepository'),
     EmployeeDetailsRepo : require('./employeeDetailsRepository'),
-    JobDetailsRepo : require('./jobDetailsRepository')
+    JobDetailsRepo : require('./jobDetailsRepository'),
+    AttendenceRepository : require('./AttendenceRepository')
 }

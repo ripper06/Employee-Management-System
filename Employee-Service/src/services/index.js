@@ -1,3 +1,4 @@
 module.exports = {
-    EmployeeService : require('./employeeService')
+    EmployeeService : require('./employeeService'),
+    AttendanceService : require('./attendanceService'),
 }

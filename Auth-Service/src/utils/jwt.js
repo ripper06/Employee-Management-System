@@ -4,7 +4,7 @@ require('dotenv').config();
 function generate(payload){
     try {
         return jwt.sign(payload, process.env.JWT_SECRET, {
-            expiresIn: '60m',
+            expiresIn: '120m'
         });
     } catch (error) {
         console.error("JWT Error:", error);

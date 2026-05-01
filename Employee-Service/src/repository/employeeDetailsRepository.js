@@ -12,6 +12,13 @@ class EmployeeDetailsRepository extends CrudRepository{
             ...options
         });
     }
+
+    async updateByEmployeeId(employee_id, data, options = {}) {
+        const response = await EmployeeDetails.update(data, {
+          where: { employee_id },
+          ...options
+        });
+}
 }
 
 module.exports = new EmployeeDetailsRepository();

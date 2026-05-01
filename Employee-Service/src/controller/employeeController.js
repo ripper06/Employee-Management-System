@@ -5,7 +5,7 @@ const {AppError} = require('../utils')
 const checkIsRegistered = async (req, res, next) => {
   try {
     const userId = req.headers['x-user-id'];
-    console.log("Checking registration for userId:", userId); 
+    //console.log("Checking registration for userId:", userId); 
 
     if (!userId) {
       throw new AppError("User ID missing in headers!", 400);
@@ -15,7 +15,7 @@ const checkIsRegistered = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      isRegistered : isRegistered
+      data : isRegistered
     });
 
   } catch (err) {
@@ -67,6 +67,10 @@ const getProfile = async (req, res, next) => {
       loginCount : req.headers['x-user-login-count']
     };
 
+    if(!additionalInfo.userId){
+      return res.status(401).json({ error: "Unauthorized, Id missing in headers!"});
+    }
+
     const { id } = req.params;
 
     if (!id) {
@@ -89,6 +93,10 @@ const getEmployeesByDepartment = async (req, res, next) => {
   try {
     const { department } = req.query;
 
+    if (!department) {
+      throw new AppError("Department query parameter is required", 400);
+    }
+
     const result = await EmployeeService.getEmployeesByDepartment(department);
 
     res.status(200).json({
@@ -104,6 +112,7 @@ const getEmployeesByDepartment = async (req, res, next) => {
 const getAllEmployee = async(req,res,next)=>{
   try {
     const result = await EmployeeService.getAllEmployees();
+    
     if(!result) throw new AppError("No Employees Found!", 400);
 
     res.status(200).json({
@@ -119,6 +128,9 @@ const getAllEmployee = async(req,res,next)=>{
 const updateEmployee = async (req, res, next) => {
   try {
     const {id} = req.params;
+
+    if(!id) throw new AppError("Employee ID is required for update", 400);
+
     const result = await EmployeeService.updateEmployee(id,req.body);
 
     res.status(200).json({

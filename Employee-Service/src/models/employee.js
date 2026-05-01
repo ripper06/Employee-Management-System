@@ -22,6 +22,11 @@ module.exports = (sequelize, DataTypes) => {
         as: 'employeeDetails',
         onDelete: 'CASCADE'
       })
+
+      Employee.hasMany(models.Attendance,{
+        foreignKey: 'emp_id',
+        as: 'attendances',
+      })
     }
   }
   Employee.init({

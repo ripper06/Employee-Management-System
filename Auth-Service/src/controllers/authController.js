@@ -6,7 +6,6 @@ const ALLOWED_ROLES = ['ADMIN', 'HR', 'EMPLOYEE'];
 const signup = async (req,res,next)=>{
     
     try {
-        console.log(req);
         let { email, password, role } = req.body;
 
         if (!email || !password || !role) {
@@ -31,7 +30,7 @@ const signup = async (req,res,next)=>{
     }
 }
 
-const login =async(req,res,next) =>{
+const login = async(req,res,next) =>{
     
     try {
         let { email, password} = req.body;

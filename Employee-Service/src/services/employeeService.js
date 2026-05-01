@@ -95,7 +95,12 @@ class EmployeeService{
   }
 
 async updateEmployee(id, data) {
+  
   const { employee, employeeDetails, jobDetails } = data;
+
+  if(!employee && !employeeDetails && !jobDetails){
+    throw new AppError("At least one of employee, employeeDetails or jobDetails must be provided for update", 400);
+  };
 
   const existingEmployee = await EmployeeRepo.findById(id);
 
@@ -110,12 +115,12 @@ async updateEmployee(id, data) {
 
   // Update employee details
   if (employeeDetails) {
-    await EmployeeDetailsRepo.update(id, employeeDetails);
+    await EmployeeDetailsRepo.updateByEmployeeId(id, employeeDetails);
   }
 
   // Update job details
   if (jobDetails) {
-    await JobDetailsRepo.update(id, jobDetails);
+    await JobDetailsRepo.updateByEmployeeId(id, jobDetails);
   }
 
   return true;
@@ -123,8 +128,15 @@ async updateEmployee(id, data) {
 
 async CheckIsRegistered(userId){
    const result = await EmployeeRepo.findByUserId(userId);
-   if(result) return true;
-   return !!result;
+   console.log("CheckIsRegistered result:", result?.dataValues?.id);
+   if(result) return {
+    id: result?.dataValues?.id, 
+    isRegistered: true
+  };
+   return {
+    id: null,
+    isRegistered: false
+  };
 }
 
 }
